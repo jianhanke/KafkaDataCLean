@@ -1,14 +1,12 @@
 package com.neuexample.streaming;
 
-import com.alibaba.fastjson.JSON;
-import com.alibaba.fastjson.JSONObject;
+
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.clients.producer.RecordMetadata;
 
-import java.util.Iterator;
 import java.util.Properties;
-import java.util.Set;
+
 
 public class MyProducer {
 

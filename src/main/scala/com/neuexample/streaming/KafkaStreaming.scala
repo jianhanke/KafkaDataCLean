@@ -84,7 +84,7 @@ object KafkaStreaming extends Serializable {
            try {
              val producer = new KafkaProducer[String, String](bc_props.value)
              partitions.foreach(line => {
-     //        println(line)
+              // println(line)
                val meta: RecordMetadata = producer.send(new ProducerRecord[String, String](bc_topic.value, line)).get()
               println("offset:" + meta.offset + "," + meta.toString)
              })

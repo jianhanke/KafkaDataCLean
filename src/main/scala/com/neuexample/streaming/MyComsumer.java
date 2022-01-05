@@ -1,8 +1,7 @@
 package com.neuexample.streaming;
 
-import org.apache.kafka.clients.consumer.ConsumerConfig;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecords;
+
+
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 
 import java.util.Arrays;
@@ -10,7 +9,6 @@ import java.util.Properties;
 
 import com.neuexample.utils.GetConfig;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.log4j.Logger;
 import org.apache.log4j.PropertyConfigurator;
 
 public class MyComsumer {
@@ -53,17 +51,9 @@ public class MyComsumer {
 
         PropertyConfigurator.configure("log4j.properties");
 
-        Logger logger = Logger.getLogger(Test.class);
 
-        for (int i = 0; i < 1000; i++) {
-            //poll消息timeout可以设置大一点，由此设置1000，拿不到数据，debug查看cluster发现没有信息
-            ConsumerRecords<String, String> records = consumer.poll(30000);
-            for (ConsumerRecord record : records) {
-                String s = "partition:" + record.partition() + ",offset:" + record.offset() + ",key:" + record.key() + ",offset:" + record.value();
-                logger.error(s);
-            }
-            System.out.println(i);
-        }
+
+
 
     }
 

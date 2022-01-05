@@ -27,7 +27,7 @@ object CleanStreaming extends Serializable {
       line => {
         val json: JSONObject = JSON.parseObject(line,Feature.OrderedField)
         val vin: String = json.getString("vin")
-//        println(line)
+  //      println(line)
 
 //        val timeStamp: Long = mkctime(json.getInteger("year")
 //          , json.getInteger("month")
@@ -84,7 +84,9 @@ object CleanStreaming extends Serializable {
     val vehicleFactory: Integer = new_obj.getInteger("vehicleFactory")
     val year: Integer = new_obj.getInteger("year")
 
-    if(year==null || year!=21 ){
+    if(year!=null && (year==21  || year==22)  ){
+
+    }else{
       isContainer=false;
     }
 
