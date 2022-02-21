@@ -27,25 +27,13 @@ object CleanStreaming extends Serializable {
       line => {
         val json: JSONObject = JSON.parseObject(line,Feature.OrderedField)
         val vin: String = json.getString("vin")
-  //      println(line)
-
-//        val timeStamp: Long = mkctime(json.getInteger("year")
-//          , json.getInteger("month")
-//          , json.getInteger("day")
-//          , json.getInteger("hours")
-//          , json.getInteger("minutes")
-//          , json.getInteger("seconds"))
-//            json.put("timeStamp", timeStamp);
-
-//          println("chu:"+line);
-
         (vin, json)
       }
     }
 
     val judgeLastDStream: MapWithStateDStream[String, JSONObject, JSONObject, JSONObject] = vin2Json.mapWithState(StateSpec.function(func_state_c))
 
-    val value: DStream[String] = judgeLastDStream.filter(_  != null)
+    val value: DStream[String] = judgeLastDStream.filter( _ != null)
       .map {
         json => {
           val cellVoltageArray: Array[Int] = stringToIntArray(json.getString("cellVoltages"))
@@ -60,7 +48,7 @@ object CleanStreaming extends Serializable {
           json.put("maxTemperature", probeTeptureArray.max - 40);
           json.put("minTemperature", probeTeptureArray.min - 40);
           json.put("temperatureProbeCount",probeTeptureArray.length);
-          json.put("temperature", probeTeptureArray.sum/probeTeptureArray.length - 40 );
+          json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 );
 
           json.toString
         }
@@ -82,14 +70,14 @@ object CleanStreaming extends Serializable {
     if(year != null && (year == 21  || year == 22)  ){    // 过滤超出年份的数据
 
     }else{
-      isContainer=false;
+      isContainer = false;
     }
 
     if(isContainer){
       if(vehicleFactory == 1) {             //  将 五零车 单独做一套清洗规则
         isContainer = isCleanGgmw(old_obj, new_obj)
       }else if(vehicleFactory == 5){          // 将
-        isContainer=  isCleanGeely(old_obj,new_obj);
+        isContainer = isCleanGeely(old_obj, new_obj);
       }
     }
 
@@ -184,11 +172,11 @@ object CleanStreaming extends Serializable {
     }
 
 
-    if(isContainer  && insulationResistance!=null && cellVoltageArray!=null && insulationResistance < 40000 &&  (cellVoltageArray.min > 2500 || cellVoltageArray.max - cellVoltageArray.min < 800  ) ){
-      if(old_obj!=null){
+    if(isContainer  && insulationResistance != null && cellVoltageArray != null && insulationResistance < 40000 &&  (cellVoltageArray.min > 2500 || cellVoltageArray.max - cellVoltageArray.min < 800  ) ){
+      if(old_obj != null){
         new_obj.put("insulationResistance", old_obj.getInteger("insulationResistance"))
       }else{
-        isContainer=false;
+        isContainer = false;
       }
     }
 
@@ -199,8 +187,8 @@ object CleanStreaming extends Serializable {
       if(last_soc != null && soc != null && soc == 0 && math.abs(last_soc - soc) > 10){
         new_obj.put("soc", last_soc);
       }
-      if(temperatureArray!=null && last_temperatureArray!=null && math.abs(last_temperatureArray.max-temperatureArray.max) > 15){
-        isChangeTemperature=true;
+      if(temperatureArray != null && last_temperatureArray != null && math.abs(last_temperatureArray.max - temperatureArray.max) > 15){
+        isChangeTemperature = true;
       }
     }
 
@@ -210,7 +198,6 @@ object CleanStreaming extends Serializable {
     if(isChangeVoltage){
       new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
     }
-
       isContainer;
   }
 
@@ -222,9 +209,8 @@ object CleanStreaming extends Serializable {
     */
   def stringToIntArray(str:String):Array[Int]={
 
-
     // println(str)
-    if(str!=null && str.length>2) {
+    if(str != null && str.length > 2) {
         val strArr: Array[String] = str.substring(1, str.length - 1).split(",")
         val intArr = new Array[Int](strArr.length);
         for (i <- 0 until intArr.length) {
@@ -246,7 +232,7 @@ object CleanStreaming extends Serializable {
   def stringToList(str:String): Array[Int]={
 
 
-    if(str==null || str.equals("[]") ) {
+    if(str == null || str.equals("[]") ) {
       Array()
     }else {
       val strArray: Array[String] = str.substring(1, str.length - 1).split(",")
@@ -263,11 +249,11 @@ object CleanStreaming extends Serializable {
   def mkctime (year:Int,month:Int,day:Int,hours:Int,minutes:Int,seconds:Int) :Long ={
 
     try {
-      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("20%s-%02d-%02d %02d:%02d:%02d".format(year, month, day, hours, minutes, seconds)).getTime / 1000
+      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("20%02d-%02d-%02d %02d:%02d:%02d".format(year, month, day, hours, minutes, seconds)).getTime / 1000
     }catch {
       case e=> return 0;
     }
-  }
 
+  }
 
 }

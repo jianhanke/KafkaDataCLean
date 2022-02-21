@@ -12,7 +12,6 @@ import org.apache.spark.streaming.dstream.DStream
 import org.apache.spark.streaming.kafka010._
 import org.apache.spark.streaming.{Seconds, StreamingContext}
 import com.neuexample.streaming.CleanStreaming._
-import org.apache.log4j.PropertyConfigurator
 
 
 object KafkaStreaming extends Serializable {
@@ -78,13 +77,13 @@ object KafkaStreaming extends Serializable {
 
 
     data.foreachRDD(
-     rdd=>{
+     rdd => {
        rdd.foreachPartition(
-         partitions=>{
+         partitions => {
            try {
              val producer = new KafkaProducer[String, String](bc_props.value)
              partitions.foreach(line => {
-              // println(line)
+
                val meta: RecordMetadata = producer.send(new ProducerRecord[String, String](bc_topic.value, line)).get()
               println("offset:" + meta.offset + "," + meta.toString)
              })
