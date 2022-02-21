@@ -69,37 +69,31 @@ object CleanStreaming extends Serializable {
     value
   }
 
-  val func_state_c=( key:String,values:Option[JSONObject],state:State[JSONObject] )=> {
 
-    val old_obj: JSONObject = state.getOption().getOrElse(null)
+  val func_state_c = ( key: String,values: Option[JSONObject],state: State[JSONObject] )=> {
+
+    val old_obj: JSONObject = state.getOption().getOrElse(null)  // 获取同一车辆的上一条数据
     val new_obj: JSONObject = values.get
 
-//    if(old_obj!=null) {
-//      println("curTime:" + new_obj.getInteger("timeStamp") + ",lastTime:" + old_obj.getInteger("timeStamp") + ",diff:" + (
-//        new_obj.getInteger("timeStamp") - old_obj.getInteger("timeStamp")
-//        ))
-//    }
-
-    var isContainer=true;
+    var isContainer = true;
     val vehicleFactory: Integer = new_obj.getInteger("vehicleFactory")
     val year: Integer = new_obj.getInteger("year")
 
-    if(year!=null && (year==21  || year==22)  ){
+    if(year != null && (year == 21  || year == 22)  ){    // 过滤超出年份的数据
 
     }else{
       isContainer=false;
     }
 
     if(isContainer){
-      if(vehicleFactory==1) {
+      if(vehicleFactory == 1) {             //  将 五零车 单独做一套清洗规则
         isContainer = isCleanGgmw(old_obj, new_obj)
-      }else if(vehicleFactory==5){
+      }else if(vehicleFactory == 5){          // 将
         isContainer=  isCleanGeely(old_obj,new_obj);
       }
     }
 
     if(isContainer){  // 保留下来的
-
       val json: JSONObject = JSON.parseObject(new_obj.toString)    // 必须转化成新的
       state.update(json);
       json
@@ -110,9 +104,16 @@ object CleanStreaming extends Serializable {
   }
 
 
+
+
+
+
+  /**
+      对吉利车厂单独做清洗规则
+   */
   def isCleanGeely(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
 
-    var isContainer = true;
+    var isContainer = true;                 // 清洗保留标志符
     var isChangeTemperature = false;
     var isChangeVoltage = false;
 
@@ -120,6 +121,7 @@ object CleanStreaming extends Serializable {
     var probeTeptureArray: Array[Int] = stringToIntArray(new_obj.getString("probeTemperatures"))
     val insulationResistance: Integer = new_obj.getInteger("insulationResistance")
 
+    // 对 温度为空或最大值为空，做清洗。如果此车辆有上条数据，则将上条数据 拿过来使用，否则过滤这条脏数据
     if(probeTeptureArray == null  || probeTeptureArray.max == 0 ){
       if(old_obj != null){
         isChangeTemperature = true;
