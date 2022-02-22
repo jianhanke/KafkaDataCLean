@@ -67,7 +67,7 @@ object CleanStreaming extends Serializable {
     val vehicleFactory: Integer = new_obj.getInteger("vehicleFactory")
     val year: Integer = new_obj.getInteger("year")
 
-    if(year != null && (year == 21  || year == 22)  ){    // 过滤超出年份的数据
+    if(year != null && year == 22  ){    // 过滤超出年份的数据
 
     }else{
       isContainer = false;
@@ -78,6 +78,8 @@ object CleanStreaming extends Serializable {
         isContainer = isCleanGgmw(old_obj, new_obj)
       }else if(vehicleFactory == 5){          // 将
         isContainer = isCleanGeely(old_obj, new_obj);
+      }else if(vehicleFactory == 2){
+        isContainer = isCleanJh(old_obj, new_obj);
       }
     }
 
@@ -92,6 +94,47 @@ object CleanStreaming extends Serializable {
   }
 
 
+
+  def isCleanJh(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
+
+    var isContainer = true;                 // 清洗保留标志符
+    var isChangeVoltage = false;
+    var isChangeTemperature = false;
+
+    var cellVoltageArray: Array[Int] = stringToIntArray(new_obj.getString("cellVoltages"))
+    var probeTeptureArray: Array[Int] = stringToIntArray(new_obj.getString("probeTemperatures"))
+
+    if(cellVoltageArray == null || cellVoltageArray.min == 0 || cellVoltageArray.max == 0){
+      if(old_obj != null){
+        isChangeVoltage = true
+      }else{
+        isContainer = false;
+      }
+    }
+
+
+    if( isContainer && old_obj != null ){
+
+      val last_probeTemperatures: Array[Int] = stringToIntArray(old_obj.getString("probeTemperatures"))
+
+      if(last_probeTemperatures != null && probeTeptureArray != null  ){
+        if(probeTeptureArray.max == 0 &&  math.abs(probeTeptureArray.max - last_probeTemperatures.max) > 10){
+            isChangeTemperature = true;
+        }else if(  math.abs(probeTeptureArray.min - last_probeTemperatures.min) > 20){
+            isChangeTemperature = true;
+        }
+      }
+
+    }
+
+    if(isChangeTemperature){
+      new_obj.put("probeTemperatures",stringToList(old_obj.getString("probeTemperatures")))
+    }
+    if(isChangeVoltage){
+      new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
+    }
+    isContainer
+  }
 
 
 
@@ -109,8 +152,8 @@ object CleanStreaming extends Serializable {
     var probeTeptureArray: Array[Int] = stringToIntArray(new_obj.getString("probeTemperatures"))
     val insulationResistance: Integer = new_obj.getInteger("insulationResistance")
 
-    // 对 温度为空或最大值为空，做清洗。如果此车辆有上条数据，则将上条数据 拿过来使用，否则过滤这条脏数据
-    if(probeTeptureArray == null  || probeTeptureArray.max == 0 ){
+    // 对 温度为空或，做清洗。如果此车辆有上条数据，则将上条数据 拿过来使用，否则过滤这条脏数据
+    if(probeTeptureArray == null ){
       if(old_obj != null){
         isChangeTemperature = true;
       }else{
@@ -126,11 +169,19 @@ object CleanStreaming extends Serializable {
       }
     }
 
-    if( isContainer && old_obj != null ){
+    if( isContainer && old_obj != null && !isChangeTemperature){
       val last_probeTemperatures: Array[Int] = stringToIntArray(old_obj.getString("probeTemperatures"))
-      if( last_probeTemperatures != null && ( (probeTeptureArray.max == 127 || math.abs(probeTeptureArray.max - last_probeTemperatures.max) >= 15) && !(cellVoltageArray.max - cellVoltageArray.min >= 400 || (insulationResistance != null && insulationResistance / (cellVoltageArray.sum / 1000.0) <= 500) ) ) ){
-        isChangeTemperature = true;
+
+      if( last_probeTemperatures != null   ){
+        if( cellVoltageArray !=null && insulationResistance != null && (probeTeptureArray.max == 127 || math.abs(probeTeptureArray.max - last_probeTemperatures.max) >= 15) && !(cellVoltageArray.max - cellVoltageArray.min <= 400 || insulationResistance / (cellVoltageArray.sum / 1000.0) >= 500) ){
+            isChangeTemperature = true;
+        }else if(probeTeptureArray.max == 0 &&  math.abs(probeTeptureArray.max - last_probeTemperatures.max) > 10){
+            isChangeTemperature = true;
+        }else if(  math.abs(probeTeptureArray.min - last_probeTemperatures.min) > 20){
+            isChangeTemperature = true;
+        }
       }
+
     }
 
     if(isChangeTemperature){
@@ -154,7 +205,7 @@ object CleanStreaming extends Serializable {
       val insulationResistance: Integer = new_obj.getInteger("insulationResistance")
       val soc: Integer = new_obj.getInteger("soc")
 
-    if( temperatureArray == null  || temperatureArray.max == 0 || temperatureArray.max > 240 ){
+    if( temperatureArray == null  || temperatureArray.max > 240 ){
       if(old_obj != null){
         isChangeTemperature = true;
       }else{
@@ -187,8 +238,15 @@ object CleanStreaming extends Serializable {
       if(last_soc != null && soc != null && soc == 0 && math.abs(last_soc - soc) > 10){
         new_obj.put("soc", last_soc);
       }
-      if(temperatureArray != null && last_temperatureArray != null && math.abs(last_temperatureArray.max - temperatureArray.max) > 15){
-        isChangeTemperature = true;
+      if(temperatureArray != null && last_temperatureArray != null){
+
+        if(math.abs(last_temperatureArray.max - temperatureArray.max) > 15){
+          isChangeTemperature = true;
+        }else if(temperatureArray.max == 0  && math.abs(last_temperatureArray.max - temperatureArray.max) > 10 ){
+          isChangeTemperature = true;
+        }else if(math.abs(last_temperatureArray.min - temperatureArray.min) > 20 ){
+          isChangeTemperature = true;
+        }
       }
     }
 
