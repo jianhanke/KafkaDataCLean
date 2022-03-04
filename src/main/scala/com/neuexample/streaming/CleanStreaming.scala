@@ -25,36 +25,14 @@ object CleanStreaming extends Serializable {
 
     val vin2Json: DStream[(String, JSONObject)] = vehicleDStream.map {
       line => {
-        val json: JSONObject = JSON.parseObject(line,Feature.OrderedField)
-        val vin: String = json.getString("vin")
-        (vin, json)
+        val json: JSONObject = JSON.parseObject(line)
+        (json.getString("vin"), json)
       }
     }
 
-    val judgeLastDStream: MapWithStateDStream[String, JSONObject, JSONObject, JSONObject] = vin2Json.mapWithState(StateSpec.function(func_state_c))
+     vin2Json.mapWithState(StateSpec.function(func_state_c))
 
-    val value: DStream[String] = judgeLastDStream.filter( _ != null)
-      .map {
-        json => {
-          val cellVoltageArray: Array[Int] = stringToIntArray(json.getString("cellVoltages"))
-          val probeTeptureArray: Array[Int] = stringToIntArray(json.getString("probeTemperatures"))
 
-          json.put("batteryMaxVoltage", cellVoltageArray.max)
-          json.put("batteryMinVoltage", cellVoltageArray.min)
-          json.put("totalVoltage", cellVoltageArray.sum);
-          json.put("voltage", cellVoltageArray.sum);
-          json.put("cellCount",cellVoltageArray.length);
-
-          json.put("maxTemperature", probeTeptureArray.max - 40);
-          json.put("minTemperature", probeTeptureArray.min - 40);
-          json.put("temperatureProbeCount",probeTeptureArray.length);
-          json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 );
-
-          json.toString
-        }
-      }
-
-    value
   }
 
 
@@ -63,34 +41,56 @@ object CleanStreaming extends Serializable {
     val old_obj: JSONObject = state.getOption().getOrElse(null)  // 获取同一车辆的上一条数据
     val new_obj: JSONObject = values.get
 
-    var isContainer = true;
+    var isRetain = true;
     val vehicleFactory: Integer = new_obj.getInteger("vehicleFactory")
     val year: Integer = new_obj.getInteger("year")
 
     if(year != null && year == 22  ){    // 过滤超出年份的数据
 
     }else{
-      isContainer = false;
+      isRetain = false;
     }
 
-    if(isContainer){
+    if(isRetain){
       if(vehicleFactory == 1) {             //  将 五零车 单独做一套清洗规则
-        isContainer = isCleanGgmw(old_obj, new_obj)
+        isRetain = isCleanGgmw(old_obj, new_obj)
       }else if(vehicleFactory == 5){          // 将
-        isContainer = isCleanGeely(old_obj, new_obj);
+        isRetain = isCleanGeely(old_obj, new_obj);
       }else if(vehicleFactory == 2){
-        isContainer = isCleanJh(old_obj, new_obj);
+        isRetain = isCleanJh(old_obj, new_obj);
       }
     }
 
-    if(isContainer){  // 保留下来的
+    if(isRetain){  // 保留下来的
       val json: JSONObject = JSON.parseObject(new_obj.toString)    // 必须转化成新的
       state.update(json);
-      json
+      cleanArrayValue(json)
     }else{
       null
     }
 
+  }
+
+  def cleanArrayValue(json: JSONObject): String ={
+    val cellVoltageArray: Array[Int] = stringToIntArray(json.getString("cellVoltages"))
+    val probeTeptureArray: Array[Int] = stringToIntArray(json.getString("probeTemperatures"))
+
+    if(cellVoltageArray != null){
+      json.put("batteryMaxVoltage", cellVoltageArray.max)
+      json.put("batteryMinVoltage", cellVoltageArray.min)
+      json.put("totalVoltage", cellVoltageArray.sum);
+      json.put("voltage", cellVoltageArray.sum);
+      json.put("cellCount",cellVoltageArray.length);
+    }
+
+    if(probeTeptureArray !=null ){
+      json.put("maxTemperature", probeTeptureArray.max - 40);
+      json.put("minTemperature", probeTeptureArray.min - 40);
+      json.put("temperatureProbeCount",probeTeptureArray.length);
+      json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 );
+    }
+
+    json.toString
   }
 
 

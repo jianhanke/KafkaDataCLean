@@ -35,10 +35,10 @@ object KafkaStreaming extends Serializable {
     val ssc =  new StreamingContext(sc, batchDuration = Seconds(2))
     ssc.checkpoint(properties.getProperty("checkpoint.dir"));
 
-    val topic: String = properties.getProperty("kafka.output.topic")
-    val topicsSet: Set[String] = properties.getProperty("kafka.input.topic").split(",").toSet
-    val bc_topic: Broadcast[String] = ssc.sparkContext.broadcast(topic)
-    //val bc_cur_year: Broadcast[String] = ssc.sparkContext.broadcast(properties.getProperty("cur.year"))
+
+
+    val bc_topic: Broadcast[String] = ssc.sparkContext.broadcast(properties.getProperty("kafka.output.topic"))
+
 
     val props = new Properties
     props.put("bootstrap.servers", properties.getProperty("kafka.bootstrap.servers"))
@@ -49,7 +49,7 @@ object KafkaStreaming extends Serializable {
     props.put("buffer.memory", "16384") //单位 byte  约为32M
     props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
-    val bc_props: Broadcast[Properties] = ssc.sparkContext.broadcast(props)
+    val bc_producer_props: Broadcast[Properties] = ssc.sparkContext.broadcast(props)
 
 
     // Kafka配置参数
@@ -65,7 +65,7 @@ object KafkaStreaming extends Serializable {
     val initStream = KafkaUtils.createDirectStream[String, String](
       ssc,
       LocationStrategies.PreferConsistent,
-      ConsumerStrategies.Subscribe[String, String](topicsSet, kafkaParams)
+      ConsumerStrategies.Subscribe[String, String](properties.getProperty("kafka.input.topic").split(",").toSet, kafkaParams)
     )
 
 
@@ -81,11 +81,12 @@ object KafkaStreaming extends Serializable {
        rdd.foreachPartition(
          partitions => {
            try {
-             val producer = new KafkaProducer[String, String](bc_props.value)
+             val producer = new KafkaProducer[String, String](bc_producer_props.value)
              partitions.foreach(line => {
-
-               val meta: RecordMetadata = producer.send(new ProducerRecord[String, String](bc_topic.value, line)).get()
-              println("offset:" + meta.offset + "," + meta.toString)
+                if(line != null) {
+                  val meta: RecordMetadata = producer.send(new ProducerRecord[String, String](bc_topic.value, line)).get()
+                  println("offset:" + meta.offset + "," + meta.toString)
+                }
              })
              producer.close()
            }catch {
