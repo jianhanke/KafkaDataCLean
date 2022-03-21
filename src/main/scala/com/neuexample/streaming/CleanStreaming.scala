@@ -81,6 +81,9 @@ object CleanStreaming extends Serializable {
       json.put("totalVoltage", cellVoltageArray.sum);
       json.put("voltage", cellVoltageArray.sum);
       json.put("cellCount",cellVoltageArray.length);
+
+      json.put("maxVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.max))
+      json.put("minVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.min))
     }
 
     if(probeTeptureArray !=null ){
@@ -88,6 +91,9 @@ object CleanStreaming extends Serializable {
       json.put("minTemperature", probeTeptureArray.min - 40);
       json.put("temperatureProbeCount",probeTeptureArray.length);
       json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 );
+
+      json.put("maxTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.max))
+      json.put("minTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.min))
     }
 
     json.toString
@@ -309,7 +315,9 @@ object CleanStreaming extends Serializable {
     try {
       new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("20%02d-%02d-%02d %02d:%02d:%02d".format(year, month, day, hours, minutes, seconds)).getTime / 1000
     }catch {
-      case e=> return 0;
+      case ex: Exception=>{
+        return 0;
+      }
     }
 
   }

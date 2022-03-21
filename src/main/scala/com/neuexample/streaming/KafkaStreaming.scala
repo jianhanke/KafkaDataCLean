@@ -17,10 +17,11 @@ import com.neuexample.streaming.CleanStreaming._
 object KafkaStreaming extends Serializable {
 
 
-  val properties = GetConfig.getProperties("test.properties")
-  // PropertyConfigurator.configure("log4j.properties");
+
 
   def main(args: Array[String]): Unit = {
+
+    val properties = GetConfig.getProperties("test.properties")
 
     val spark = SparkSession
       .builder
@@ -28,16 +29,13 @@ object KafkaStreaming extends Serializable {
       .appName("SparkStreamingKafkaFilter")
       .getOrCreate()
 
-    val sc = spark.sparkContext
-    sc.setLogLevel("ERROR");
+    spark.sparkContext.setLogLevel("ERROR");
 
 
-    val ssc =  new StreamingContext(sc, batchDuration = Seconds(2))
+
+    val ssc =  new StreamingContext(spark.sparkContext, batchDuration = Seconds(2))
     ssc.checkpoint(properties.getProperty("checkpoint.dir"));
 
-
-
-    val bc_topic: Broadcast[String] = ssc.sparkContext.broadcast(properties.getProperty("kafka.output.topic"))
 
 
     val props = new Properties
@@ -50,6 +48,7 @@ object KafkaStreaming extends Serializable {
     props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     props.put("value.serializer", "org.apache.kafka.common.serialization.StringSerializer")
     val bc_producer_props: Broadcast[Properties] = ssc.sparkContext.broadcast(props)
+    val bc_topic: Broadcast[String] = ssc.sparkContext.broadcast(properties.getProperty("kafka.output.topic"))
 
 
     // Kafka配置参数
@@ -59,7 +58,8 @@ object KafkaStreaming extends Serializable {
       "key.deserializer" -> classOf[StringDeserializer],
       "value.deserializer" -> classOf[StringDeserializer],
       // 自动将偏移重置为最新的偏移，如果是第一次启动程序，应该为smallest，从头开始读
-      "auto.offset.reset" -> properties.getProperty("kafka.auto.offset.reset")
+      "auto.offset.reset" -> properties.getProperty("kafka.auto.offset.reset"),
+      "enable.auto.commit" -> "true"
     )
 
     val initStream = KafkaUtils.createDirectStream[String, String](
@@ -100,10 +100,10 @@ object KafkaStreaming extends Serializable {
    )
 
 
-      initStream.foreachRDD(rdd => {
-      var offsetRanges: Array[OffsetRange] = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
-      initStream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
-      })
+//      initStream.foreachRDD(rdd => {
+//      var offsetRanges: Array[OffsetRange] = rdd.asInstanceOf[HasOffsetRanges].offsetRanges
+//      initStream.asInstanceOf[CanCommitOffsets].commitAsync(offsetRanges)
+//      })
 
     ssc.start()
     ssc.awaitTermination()
