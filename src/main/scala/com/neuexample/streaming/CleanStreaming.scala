@@ -82,8 +82,8 @@ object CleanStreaming extends Serializable {
       json.put("voltage", cellVoltageArray.sum);
       json.put("cellCount",cellVoltageArray.length);
 
-      json.put("maxVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.max))
-      json.put("minVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.min))
+      json.put("maxVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.max) + 1)
+      json.put("minVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.min) + 1)
     }
 
     if(probeTeptureArray !=null ){
@@ -92,8 +92,8 @@ object CleanStreaming extends Serializable {
       json.put("temperatureProbeCount",probeTeptureArray.length);
       json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 );
 
-      json.put("maxTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.max))
-      json.put("minTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.min))
+      json.put("maxTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.max) + 1 )
+      json.put("minTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.min) + 1 )
     }
 
     json.toString

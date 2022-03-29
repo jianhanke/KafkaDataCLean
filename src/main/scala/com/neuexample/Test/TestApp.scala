@@ -28,6 +28,14 @@ object TestApp {
     json.put("minTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.min))
 
     println(json)
+
+    if( true &&  false || true  ){
+      println("first one");
+    }else{
+      println("second two");
+    }
+
+
   }
 
 }
