@@ -8,9 +8,9 @@ object Geely {
   /**
         对吉利车厂单独做清洗规则
     */
-  def isCleanGeely(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
+  def isRetainGeely(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
 
-    var isContainer = true;                 // 清洗保留标志符
+    var isReatain = true;                 // 清洗保留标志符
     var isChangeTemperature = false;
     var isChangeVoltage = false;
 
@@ -23,19 +23,19 @@ object Geely {
       if(old_obj != null){
         isChangeTemperature = true;
       }else{
-        isContainer = false;
+        isReatain = false;
       }
     }
 
-    if( isContainer &&  (cellVoltageArray == null || cellVoltageArray.min == 0 || cellVoltageArray.max == 0) ) {
+    if( isReatain &&  (cellVoltageArray == null || cellVoltageArray.min == 0 || cellVoltageArray.max == 0) ) {
       if(old_obj != null){
         isChangeVoltage = true
       }else{
-        isContainer = false;
+        isReatain = false;
       }
     }
 
-    if( isContainer && old_obj != null && !isChangeTemperature){
+    if( isReatain && old_obj != null && !isChangeTemperature){
       val last_probeTemperatures: Array[Int] = stringToIntArray(old_obj.getString("probeTemperatures"))
 
       if( last_probeTemperatures != null   ){
@@ -57,7 +57,7 @@ object Geely {
       new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
     }
 
-    isContainer
+    isReatain
   }
 
 }

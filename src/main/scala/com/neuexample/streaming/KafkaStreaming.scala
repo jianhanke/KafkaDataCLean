@@ -26,7 +26,7 @@ object KafkaStreaming extends Serializable {
     val spark = SparkSession
       .builder
       .master(properties.getProperty("spark.master"))
-      .appName("SparkStreamingKafkaFilter")
+      .appName("KafkaFilter")
       .getOrCreate()
 
     spark.sparkContext.setLogLevel("WARN");

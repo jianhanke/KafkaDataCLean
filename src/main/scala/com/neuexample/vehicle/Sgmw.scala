@@ -5,9 +5,9 @@ import com.neuexample.utils.CommonFuncs._
 
 object Sgmw {
 
-  def isCleanGgmw(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
+  def isRetainGgmw(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
 
-    var isContainer = true;
+    var isReatain = true;
     var isChangeTemperature = false;
     var isChangeVoltage = false;
 
@@ -20,29 +20,29 @@ object Sgmw {
       if(old_obj != null){
         isChangeTemperature = true;
       }else{
-        isContainer = false;
+        isReatain = false;
       }
     }
 
 
-    if(  isContainer && (cellVoltageArray == null || cellVoltageArray.min == 0 || cellVoltageArray.max == 0  ||  cellVoltageArray.max > 4000)  ){
+    if(  isReatain && (cellVoltageArray == null || cellVoltageArray.min == 0 || cellVoltageArray.max == 0  ||  cellVoltageArray.max > 4000)  ){
       if(old_obj != null){
         isChangeVoltage = true;
       }else{
-        isContainer = false;
+        isReatain = false;
       }
     }
 
 
-    if(isContainer  && insulationResistance != null && cellVoltageArray != null && insulationResistance < 40000 &&  (cellVoltageArray.min > 2500 || cellVoltageArray.max - cellVoltageArray.min < 800  ) ){
+    if(isReatain  && insulationResistance != null && cellVoltageArray != null && insulationResistance < 40000 &&  (cellVoltageArray.min > 2500 || cellVoltageArray.max - cellVoltageArray.min < 800  ) ){
       if(old_obj != null){
         new_obj.put("insulationResistance", old_obj.getInteger("insulationResistance"))
       }else{
-        isContainer = false;
+        isReatain = false;
       }
     }
 
-    if (isContainer  &&  old_obj != null  ) {
+    if (isReatain  &&  old_obj != null  ) {
       val last_temperatureArray: Array[Int] = stringToIntArray(old_obj.getString("probeTemperatures"))
       val last_soc: Integer = old_obj.getInteger("soc")
 
@@ -67,7 +67,7 @@ object Sgmw {
     if(isChangeVoltage){
       new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
     }
-    isContainer;
+    isReatain;
   }
 
 }

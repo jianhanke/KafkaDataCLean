@@ -49,25 +49,30 @@ object CleanStreaming extends Serializable {
 
     if(isRetain){
       if(vehicleFactory == 1) {
-        isRetain = isCleanGgmw(old_obj, new_obj)
+        isRetain = isRetainGgmw(old_obj, new_obj)
       }else if(vehicleFactory == 5){          // 将
-        isRetain = isCleanGeely(old_obj, new_obj);
-      }else if(vehicleFactory == 2){
-        isRetain = isCleanJh(old_obj, new_obj);
+        isRetain = isRetainGeely(old_obj, new_obj);
       }
     }
 
     if(isRetain){  // 保留下来的
       val json: JSONObject = JSON.parseObject(new_obj.toString)    // 必须转化成新的
-      state.update(json);
+
+      if(json.getInteger("vehicleFactory") == 2){
+        processJhData(json)
+      }
       cleanArrayValue(json)
+
+      state.update(json);
+
+      json.toString
     }else{
       null
     }
 
   }
 
-  def cleanArrayValue(json: JSONObject): String ={
+  def cleanArrayValue(json: JSONObject){
     val cellVoltageArray: Array[Int] = stringToIntArray(json.getString("cellVoltages"))
     val probeTeptureArray: Array[Int] = stringToIntArray(json.getString("probeTemperatures"))
 
@@ -92,12 +97,7 @@ object CleanStreaming extends Serializable {
       json.put("minTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.min) + 1 )
     }
 
-    json.toString
+
   }
-
-
-
-
-
 
 }
