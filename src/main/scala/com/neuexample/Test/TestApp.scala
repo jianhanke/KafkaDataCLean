@@ -1,41 +1,21 @@
 package com.neuexample.Test
 
 import com.alibaba.fastjson.{JSON, JSONObject}
-import com.neuexample.streaming.CleanStreaming.stringToIntArray
 
 object TestApp {
 
   def main(args: Array[String]): Unit = {
 
-    var str="{\"alarmInfo\":0,\"batteryConsistencyPoor\":false,\"batteryCount\":0,\"batteryHighTemperature\":false,\"batteryMaxVoltage\":3653,\"batteryMinVoltage\":3646,\"batteryNumber\":0,\"brakingSystem\":false,\"cellCount\":102,\"cellVoltages\":[3651,3649,3649,3649,3647,3649,3650,3649,3649,3648,3649,3650,3650,3650,3650,3649,3648,3651,3649,3646,3649,3649,3648,3651,3648,3648,3649,3648,3648,3649,3650,3648,3648,3649,3648,3649,3649,3649,3650,3650,3650,3651,3653,3649,3648,3648,3648,3650,3649,3649,3648,3649,3648,3651,3649,3649,3649,3648,3648,3649,3647,3647,3649,3648,3648,3649,3650,3649,3648,3649,3647,3647,3648,3649,3648,3649,3648,3650,3650,3649,3649,3649,3648,3649,3649,3648,3648,3649,3649,3650,3652,3648,3649,3649,3649,3649,3648,3649,3649,3649,3648,3648],\"chargeStatus\":3,\"controllerDcBusbarCurrent\":0,\"controllerInputVoltage\":0,\"current\":33200,\"day\":19,\"dcStatus\":true,\"dcTemperature\":false,\"deviceFailuresCodes\":[],\"deviceFailuresCount\":0,\"deviceTypeDontMatch\":false,\"deviceTypeOverFilling\":false,\"deviceTypeOverVoltage\":false,\"deviceTypeUnderVoltage\":false,\"driveMotorControllerTemperature\":false,\"driveMotorCount\":0,\"driveMotorFailuresCodes\":[],\"driveMotorFailuresCount\":0,\"driveMotorTemperature\":false,\"engineFailuresCodes\":[],\"engineFailuresCount\":0,\"gears\":0,\"highPressureInterlock\":false,\"hours\":22,\"insulation\":false,\"insulationResistance\":3024000,\"latitude\":0,\"level\":0,\"longitude\":0,\"maxTemperature\":54,\"maxTemperatureNum\":1,\"maxTemperatureSystemNum\":1,\"maxVoltageSystemNum\":1,\"maxVoltagebatteryNum\":43,\"mileage\":523,\"minTemperature\":53,\"minTemperatureNum\":2,\"minTemperatureSystemNum\":1,\"minVoltageSystemNum\":1,\"minVoltagebatteryNum\":20,\"minutes\":47,\"monomerBatteryOverVoltage\":false,\"monomerBatteryUnderVoltage\":false,\"month\":1,\"operationMode\":0,\"otherFailuresCodes\":[],\"otherFailuresCount\":0,\"probeTemperatures\":[54,53,54,54,54,54,54,54,54,53,53,53,54,54,54,53,53,53,53,53,54,54,54,54,54,53,54,53,54,54,54,54,54,54],\"riveMotorDataNum\":0,\"seconds\":58,\"soc\":42,\"socHigh\":false,\"socJump\":false,\"socLow\":false,\"speed\":0,\"status\":0,\"subsystemTemperatureCount\":0,\"subsystemTemperatureDataNum\":0,\"subsystemVoltageCount\":0,\"subsystemVoltageDataNum\":0,\"temperature\":0,\"temperatureDifferential\":false,\"temperatureProbeCount\":34,\"time\":1642603678000,\"torque\":0,\"totalCurrent\":0,\"totalVoltage\":0,\"vehicleFactory\":\"5\",\"vehicleStatus\":0,\"vin\":\"LB3752CW8MAOSSTSG\",\"voltage\":3715,\"year\":22}";
+    var str="{\"maxTemperature\":63,\"driveMotorControllerTemperature\":false,\"dcTemperature\":false,\"controllerDcBusbarCurrent\":10000,\"batteryNumber\":1,\"temperatureDifferential\":false,\"year\":22,\"soc\":34,\"engineFailuresCount\":0,\"insulationResistance\":40729000,\"otherFailuresCodes\":[],\"maxVoltageSystemNum\":1,\"seconds\":18,\"driveMotorTemperature\":false,\"minVoltagebatteryNum\":8,\"deviceTypeOverVoltage\":false,\"engineFailuresCodes\":[],\"temperatureProbeCount\":5,\"vin\":\"703C6670C121BFC85\",\"highPressureInterlock\":false,\"vehicleFactory\":\"1\",\"driveMotorCount\":1,\"day\":19,\"subsystemVoltageCount\":1,\"gears\":15,\"longitude\":4294967294,\"mileage\":26200,\"socHigh\":false,\"subsystemTemperatureCount\":1,\"level\":0,\"maxTemperatureNum\":2,\"minutes\":46,\"minTemperatureNum\":1,\"batteryCount\":30,\"insulation\":false,\"month\":1,\"deviceFailuresCount\":0,\"socJump\":false,\"subsystemTemperatureDataNum\":1,\"totalVoltage\":996,\"vehicleStatus\":2,\"status\":254,\"deviceFailuresCodes\":[],\"driveMotorFailuresCodes\":[],\"maxVoltagebatteryNum\":1,\"latitude\":4294967294,\"torque\":65534,\"deviceTypeDontMatch\":false,\"socLow\":false,\"alarmInfo\":0,\"cellVoltages\":[3326,3322,3321,3321,3320,3321,3320,3319,3321,3322,3320,3321,3324,3321,3321,3320,3320,3324,3321,3321,3320,3320,3321,3322,3322,3321,3320,3320,3320,3323],\"chargeStatus\":1,\"speed\":65534,\"deviceTypeOverFilling\":false,\"controllerInputVoltage\":970,\"operationMode\":254,\"current\":9858,\"cellCount\":30,\"totalCurrent\":9858,\"minTemperature\":62,\"monomerBatteryUnderVoltage\":false,\"temperature\":254,\"deviceTypeUnderVoltage\":false,\"monomerBatteryOverVoltage\":false,\"batteryConsistencyPoor\":false,\"batteryMaxVoltage\":3326,\"batteryHighTemperature\":false,\"dcStatus\":false,\"hours\":22,\"riveMotorDataNum\":254,\"brakingSystem\":false,\"batteryMinVoltage\":3319,\"minTemperatureSystemNum\":1,\"driveMotorFailuresCount\":0,\"maxTemperatureSystemNum\":1,\"voltage\":996,\"subsystemVoltageDataNum\":1,\"minVoltageSystemNum\":1,\"otherFailuresCount\":0,\"probeTemperatures\":[62,63,62,63,63],\"time\":1642603679440}";
 
-    val json: JSONObject = JSON.parseObject(str)
+     var json: JSONObject = JSON.parseObject(str)
+     val bytes: Array[Byte] = json.getBytes("cellVoltages")
 
-    val cellVoltages: Array[Int] = stringToIntArray(json.getString("cellVoltages"))
-    println(cellVoltages.mkString(","))
-    println(cellVoltages.max + "," + cellVoltages.indexOf(cellVoltages.max) )
-    println(cellVoltages.min + "," + cellVoltages.indexOf(cellVoltages.min) )
-    json.put("maxVoltagebatteryNum", cellVoltages.indexOf(cellVoltages.max))
-    json.put("minVoltagebatteryNum", cellVoltages.indexOf(cellVoltages.min))
-
-
-    println()
-    val probeTeptureArray: Array[Int] = stringToIntArray(json.getString("probeTemperatures"))
-    println(probeTeptureArray.mkString(","))
-    println(probeTeptureArray.max + "," + probeTeptureArray.indexOf(probeTeptureArray.max) )
-    println(probeTeptureArray.min + "," + probeTeptureArray.indexOf(probeTeptureArray.min) )
-    json.put("maxTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.max))
-    json.put("minTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.min))
-
-    println(json)
-
-    if( true &&  false || true  ){
-      println("first one");
-    }else{
-      println("second two");
-    }
-
+    println(bytes.mkString(","))
 
   }
+
+
+
 
 }

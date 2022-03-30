@@ -29,7 +29,7 @@ object KafkaStreaming extends Serializable {
       .appName("SparkStreamingKafkaFilter")
       .getOrCreate()
 
-    spark.sparkContext.setLogLevel("ERROR");
+    spark.sparkContext.setLogLevel("WARN");
 
 
 
@@ -71,9 +71,8 @@ object KafkaStreaming extends Serializable {
 
     val persistsParts: DStream[String] = initStream.map(_.value()).persist(StorageLevel.MEMORY_ONLY)
 
-    val cleanVehicleDStream: DStream[String] = vehicleClean(persistsParts)
 
-    val data: DStream[String] = cleanVehicleDStream.persist(StorageLevel.MEMORY_ONLY)
+    val data: DStream[String] = vehicleClean(persistsParts).persist(StorageLevel.MEMORY_ONLY)
 
 
     data.foreachRDD(
@@ -84,8 +83,9 @@ object KafkaStreaming extends Serializable {
              val producer = new KafkaProducer[String, String](bc_producer_props.value)
              partitions.foreach(line => {
                 if(line != null) {
-                  val meta: RecordMetadata = producer.send(new ProducerRecord[String, String](bc_topic.value, line)).get()
-                  println("offset:" + meta.offset + "," + meta.toString)
+//                  val meta: RecordMetadata = .get()
+//                  println("offset:" + meta.offset + "," + meta.toString)
+                  producer.send(new ProducerRecord[String, String](bc_topic.value, line))
                 }
              })
              producer.close()

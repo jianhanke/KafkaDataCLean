@@ -1,11 +1,12 @@
 package com.neuexample.streaming
 
-import java.text.SimpleDateFormat
-
-import com.alibaba.fastjson.parser.Feature
 import com.alibaba.fastjson.{JSON, JSONObject}
 import org.apache.spark.streaming.{State, StateSpec}
 import org.apache.spark.streaming.dstream.{DStream, MapWithStateDStream}
+import com.neuexample.vehicle.Sgmw._
+import com.neuexample.vehicle.Jh._
+import com.neuexample.vehicle.Geely._
+import com.neuexample.utils.CommonFuncs._
 
 /**
   * 清洗规则细节：
@@ -21,17 +22,12 @@ object CleanStreaming extends Serializable {
 
   def vehicleClean(vehicleDStream: DStream[String]): DStream[String]={
 
-
-
-    val vin2Json: DStream[(String, JSONObject)] = vehicleDStream.map {
+     vehicleDStream.map {
       line => {
         val json: JSONObject = JSON.parseObject(line)
         (json.getString("vin"), json)
       }
-    }
-
-     vin2Json.mapWithState(StateSpec.function(func_state_c))
-
+    }.mapWithState(StateSpec.function(func_state_c))
 
   }
 
@@ -52,7 +48,7 @@ object CleanStreaming extends Serializable {
     }
 
     if(isRetain){
-      if(vehicleFactory == 1) {             //  将 五零车 单独做一套清洗规则
+      if(vehicleFactory == 1) {
         isRetain = isCleanGgmw(old_obj, new_obj)
       }else if(vehicleFactory == 5){          // 将
         isRetain = isCleanGeely(old_obj, new_obj);
@@ -101,225 +97,7 @@ object CleanStreaming extends Serializable {
 
 
 
-  def isCleanJh(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
-
-    var isContainer = true;                 // 清洗保留标志符
-    var isChangeVoltage = false;
-    var isChangeTemperature = false;
-
-    var cellVoltageArray: Array[Int] = stringToIntArray(new_obj.getString("cellVoltages"))
-    var probeTeptureArray: Array[Int] = stringToIntArray(new_obj.getString("probeTemperatures"))
-
-    if(cellVoltageArray == null || cellVoltageArray.min == 0 || cellVoltageArray.max == 0){
-      if(old_obj != null){
-        isChangeVoltage = true
-      }else{
-        isContainer = false;
-      }
-    }
 
 
-    if( isContainer && old_obj != null ){
-
-      val last_probeTemperatures: Array[Int] = stringToIntArray(old_obj.getString("probeTemperatures"))
-
-      if(last_probeTemperatures != null && probeTeptureArray != null  ){
-        if(probeTeptureArray.max == 0 &&  math.abs(probeTeptureArray.max - last_probeTemperatures.max) > 10){
-            isChangeTemperature = true;
-        }else if(  math.abs(probeTeptureArray.min - last_probeTemperatures.min) > 20){
-            isChangeTemperature = true;
-        }
-      }
-
-    }
-
-    if(isChangeTemperature){
-      new_obj.put("probeTemperatures",stringToList(old_obj.getString("probeTemperatures")))
-    }
-    if(isChangeVoltage){
-      new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
-    }
-    isContainer
-  }
-
-
-
-
-  /**
-      对吉利车厂单独做清洗规则
-   */
-  def isCleanGeely(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
-
-    var isContainer = true;                 // 清洗保留标志符
-    var isChangeTemperature = false;
-    var isChangeVoltage = false;
-
-    var cellVoltageArray: Array[Int] = stringToIntArray(new_obj.getString("cellVoltages"))
-    var probeTeptureArray: Array[Int] = stringToIntArray(new_obj.getString("probeTemperatures"))
-    val insulationResistance: Integer = new_obj.getInteger("insulationResistance")
-
-    // 对 温度为空或，做清洗。如果此车辆有上条数据，则将上条数据 拿过来使用，否则过滤这条脏数据
-    if(probeTeptureArray == null ){
-      if(old_obj != null){
-        isChangeTemperature = true;
-      }else{
-        isContainer = false;
-      }
-    }
-
-    if( isContainer &&  (cellVoltageArray == null || cellVoltageArray.min == 0 || cellVoltageArray.max == 0) ) {
-      if(old_obj != null){
-        isChangeVoltage = true
-      }else{
-        isContainer = false;
-      }
-    }
-
-    if( isContainer && old_obj != null && !isChangeTemperature){
-      val last_probeTemperatures: Array[Int] = stringToIntArray(old_obj.getString("probeTemperatures"))
-
-      if( last_probeTemperatures != null   ){
-        if( cellVoltageArray !=null && insulationResistance != null && (probeTeptureArray.max == 127 || math.abs(probeTeptureArray.max - last_probeTemperatures.max) >= 15) && !(cellVoltageArray.max - cellVoltageArray.min <= 400 || insulationResistance / (cellVoltageArray.sum / 1000.0) >= 500) ){
-            isChangeTemperature = true;
-        }else if(probeTeptureArray.max == 0 &&  math.abs(probeTeptureArray.max - last_probeTemperatures.max) > 10){
-            isChangeTemperature = true;
-        }else if(  math.abs(probeTeptureArray.min - last_probeTemperatures.min) > 20){
-            isChangeTemperature = true;
-        }
-      }
-
-    }
-
-    if(isChangeTemperature){
-      new_obj.put("probeTemperatures",stringToList(old_obj.getString("probeTemperatures")))
-    }
-    if(isChangeVoltage){
-      new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
-    }
-
-    isContainer
-  }
-
-  def isCleanGgmw(old_obj: JSONObject, new_obj: JSONObject): Boolean ={
-
-      var isContainer = true;
-      var isChangeTemperature = false;
-      var isChangeVoltage = false;
-
-      var cellVoltageArray: Array[Int] = stringToIntArray(new_obj.getString("cellVoltages"))
-      var temperatureArray: Array[Int] = stringToIntArray(new_obj.getString("probeTemperatures"))
-      val insulationResistance: Integer = new_obj.getInteger("insulationResistance")
-      val soc: Integer = new_obj.getInteger("soc")
-
-    if( temperatureArray == null  || temperatureArray.max > 240 ){
-      if(old_obj != null){
-        isChangeTemperature = true;
-      }else{
-        isContainer = false;
-      }
-    }
-
-
-    if(  isContainer && (cellVoltageArray == null || cellVoltageArray.min == 0 || cellVoltageArray.max == 0  ||  cellVoltageArray.max > 4000)  ){
-      if(old_obj != null){
-        isChangeVoltage = true;
-      }else{
-        isContainer = false;
-      }
-    }
-
-
-    if(isContainer  && insulationResistance != null && cellVoltageArray != null && insulationResistance < 40000 &&  (cellVoltageArray.min > 2500 || cellVoltageArray.max - cellVoltageArray.min < 800  ) ){
-      if(old_obj != null){
-        new_obj.put("insulationResistance", old_obj.getInteger("insulationResistance"))
-      }else{
-        isContainer = false;
-      }
-    }
-
-    if (isContainer  &&  old_obj != null  ) {
-      val last_temperatureArray: Array[Int] = stringToIntArray(old_obj.getString("probeTemperatures"))
-      val last_soc: Integer = old_obj.getInteger("soc")
-
-      if(last_soc != null && soc != null && soc == 0 && math.abs(last_soc - soc) > 10){
-        new_obj.put("soc", last_soc);
-      }
-      if(temperatureArray != null && last_temperatureArray != null){
-
-        if(math.abs(last_temperatureArray.max - temperatureArray.max) > 15){
-          isChangeTemperature = true;
-        }else if(temperatureArray.max == 0  && math.abs(last_temperatureArray.max - temperatureArray.max) > 10 ){
-          isChangeTemperature = true;
-        }else if(math.abs(last_temperatureArray.min - temperatureArray.min) > 20 ){
-          isChangeTemperature = true;
-        }
-      }
-    }
-
-    if(isChangeTemperature){
-      new_obj.put("probeTemperatures",stringToList(old_obj.getString("probeTemperatures")))
-    }
-    if(isChangeVoltage){
-      new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
-    }
-      isContainer;
-  }
-
-
-  /**
-    *
-    * @param str  ["1","2","3"]
-    * @return      Array[1,2,3]
-    */
-  def stringToIntArray(str:String):Array[Int]={
-
-    // println(str)
-    if(str != null && str.length > 2) {
-        val strArr: Array[String] = str.substring(1, str.length - 1).split(",")
-        val intArr = new Array[Int](strArr.length);
-        for (i <- 0 until intArr.length) {
-          intArr(i) = strArr(i).toInt
-        }
-        intArr
-    }else{
-      null
-    }
-
-  }
-
-
-  /**
-    *
-    * @param str  "[1,2,3]"
-    * @return      [1,2,3]
-    */
-  def stringToList(str:String): Array[Int]={
-
-
-    if(str == null || str.equals("[]") ) {
-      Array()
-    }else {
-      val strArray: Array[String] = str.substring(1, str.length - 1).split(",")
-      val intArray: Array[Int] =new Array[Int](strArray.length);
-      for (i <- 0 until strArray.length) {
-        intArray(i) = strArray(i).toInt
-      }
-      intArray
-    }
-
-  }
-
-
-  def mkctime (year:Int,month:Int,day:Int,hours:Int,minutes:Int,seconds:Int) :Long ={
-
-    try {
-      new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").parse("20%02d-%02d-%02d %02d:%02d:%02d".format(year, month, day, hours, minutes, seconds)).getTime / 1000
-    }catch {
-      case ex: Exception=>{
-        return 0;
-      }
-    }
-
-  }
 
 }
