@@ -6,10 +6,11 @@ import org.apache.spark.streaming.dstream.{DStream, MapWithStateDStream}
 import com.neuexample.vehicle.Sgmw._
 import com.neuexample.vehicle.Jh._
 import com.neuexample.vehicle.Geely._
+import com.neuexample.vehicle.CommonVehicle._
 import com.neuexample.utils.CommonFuncs._
 
 /**
-  * 清洗规则细节：
+  *  清洗规则细节：
   *
   *   当前数据某一字段有问题，则 当前数据字段 = 前一刻数据字段 ，如没有前一刻数据，则这一整条脏数据删除掉。
   *   如当前数据必须要和前一刻做判断，但没有前一刻数据，则这条（干净或脏）整个数据会保留下来。
@@ -37,28 +38,30 @@ object CleanStreaming extends Serializable {
     val old_obj: JSONObject = state.getOption().getOrElse(null)  // 获取同一车辆的上一条数据
     val new_obj: JSONObject = values.get
 
-    var isRetain = true;
-    val vehicleFactory: Integer = new_obj.getInteger("vehicleFactory")
-    val year: Integer = new_obj.getInteger("year")
+    var isDelete = false;
+    val vehicleFactory: Int = new_obj.getIntValue("vehicleFactory")
+    val year: Int = new_obj.getIntValue("year")
 
-    if(year != null && year == 22  ){    // 过滤超出年份的数据
+    if( year == 22  ){    // 过滤超出年份的数据
 
     }else{
-      isRetain = false;
+      isDelete = true;
     }
 
-    if(isRetain){
-      if(vehicleFactory == 1) {
-        isRetain = isRetainGgmw(old_obj, new_obj)
-      }else if(vehicleFactory == 5){          // 将
-        isRetain = isRetainGeely(old_obj, new_obj);
-      }
+    if(!isDelete){
+        if(vehicleFactory == 5){
+          isDelete = isDeleteBasedOnGeely(old_obj, new_obj);
+        }else if(vehicleFactory == 1){
+          isDelete = isDeleteBasedOnCommon(old_obj, new_obj);
+        }
     }
 
-    if(isRetain){  // 保留下来的
+    if(isDelete){
+      null
+    }else{   // 保留下来的
       val json: JSONObject = JSON.parseObject(new_obj.toString)    // 必须转化成新的
 
-      if(json.getInteger("vehicleFactory") == 2){
+      if(vehicleFactory == 2){
         processJhData(json)
       }
       cleanArrayValue(json)
@@ -66,8 +69,6 @@ object CleanStreaming extends Serializable {
       state.update(json);
 
       json.toString
-    }else{
-      null
     }
 
   }

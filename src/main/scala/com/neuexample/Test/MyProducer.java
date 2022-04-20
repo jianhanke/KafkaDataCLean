@@ -13,7 +13,7 @@ public class MyProducer {
     public static void main(String[] args)throws Exception {
 
         Properties props = new Properties();
-        props.put("bootstrap.servers","hadoop1:6667");
+        props.put("bootstrap.servers","hadoop1:6667,hadoop2:6667,hadoop3:6667,");
         props.put("acks","all");
         props.put("retries",1);
         props.put("batch.size",16384);  //  byte
