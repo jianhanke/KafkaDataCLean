@@ -65,7 +65,6 @@ object CommonVehicle {
 
     // 温度清洗判断
     if(!isDelete && ( temperatureArray == null ||  temperatureArray.min == 0 || temperatureArray.max >= 165 ) ){
-      println("error temperature ")
       if(last_json == null){
         isDelete = true;
       }else{

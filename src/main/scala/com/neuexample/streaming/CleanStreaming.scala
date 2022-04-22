@@ -50,10 +50,13 @@ object CleanStreaming extends Serializable {
 
     if(!isDelete){
         if(vehicleFactory == 5){
-          isDelete = isDeleteBasedOnGeely(old_obj, new_obj);
+          isDelete = !isRetainGeely(old_obj, new_obj);
         }else if(vehicleFactory == 1){
+          isDelete = !isRetainGgmw(old_obj, new_obj);
+        }else if(vehicleFactory == 2){
           isDelete = isDeleteBasedOnCommon(old_obj, new_obj);
         }
+        println(isDelete)
     }
 
     if(isDelete){
