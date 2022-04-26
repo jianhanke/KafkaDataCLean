@@ -1,6 +1,7 @@
 package com.neuexample.streaming
 
 import com.alibaba.fastjson.{JSON, JSONObject}
+import com.neuexample.utils.CheryVin
 import org.apache.spark.streaming.{State, StateSpec}
 import org.apache.spark.streaming.dstream.{DStream, MapWithStateDStream}
 import com.neuexample.vehicle.Sgmw._
@@ -8,7 +9,7 @@ import com.neuexample.vehicle.Jh._
 import com.neuexample.vehicle.Geely._
 import com.neuexample.vehicle.CommonVehicle._
 import com.neuexample.utils.CommonFuncs._
-
+import com.neuexample.vehicle.Chery.processChery
 /**
   *  清洗规则细节：
   *
@@ -22,6 +23,8 @@ object CleanStreaming extends Serializable {
 
 
   def vehicleClean(vehicleDStream: DStream[String]): DStream[String]={
+
+
 
      vehicleDStream.map {
       line => {
@@ -67,6 +70,12 @@ object CleanStreaming extends Serializable {
       if(vehicleFactory == 2){
         processJhData(json)
       }
+      //获取奇瑞项目为3的vin列表
+      if(vehicleFactory ==6 &&
+        CheryVin.creatInstance().contains(json.getString("vin"))){
+         processChery(json)
+      }
+
       cleanArrayValue(json)
 
       state.update(json);
@@ -83,19 +92,19 @@ object CleanStreaming extends Serializable {
     if(cellVoltageArray != null){
       json.put("batteryMaxVoltage", cellVoltageArray.max)
       json.put("batteryMinVoltage", cellVoltageArray.min)
-      json.put("totalVoltage", cellVoltageArray.sum);
-      json.put("voltage", cellVoltageArray.sum);
-      json.put("cellCount",cellVoltageArray.length);
+      json.put("totalVoltage", cellVoltageArray.sum)
+      json.put("voltage", cellVoltageArray.sum)
+      json.put("cellCount",cellVoltageArray.length)
 
       json.put("maxVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.max) + 1)
       json.put("minVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.min) + 1)
     }
 
     if(probeTeptureArray !=null ){
-      json.put("maxTemperature", probeTeptureArray.max - 40);
-      json.put("minTemperature", probeTeptureArray.min - 40);
+      json.put("maxTemperature", probeTeptureArray.max - 40)
+      json.put("minTemperature", probeTeptureArray.min - 40)
       json.put("temperatureProbeCount",probeTeptureArray.length);
-      json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 );
+      json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 )
 
       json.put("maxTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.max) + 1 )
       json.put("minTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.min) + 1 )
