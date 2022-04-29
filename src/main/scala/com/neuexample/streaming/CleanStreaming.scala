@@ -1,7 +1,7 @@
 package com.neuexample.streaming
 
 import com.alibaba.fastjson.{JSON, JSONObject}
-import com.neuexample.utils.CheryVin
+import com.neuexample.utils.CheryUtil
 import org.apache.spark.streaming.{State, StateSpec}
 import org.apache.spark.streaming.dstream.{DStream, MapWithStateDStream}
 import com.neuexample.vehicle.Sgmw._
@@ -9,7 +9,9 @@ import com.neuexample.vehicle.Jh._
 import com.neuexample.vehicle.Geely._
 import com.neuexample.vehicle.CommonVehicle._
 import com.neuexample.utils.CommonFuncs._
-import com.neuexample.vehicle.Chery.processChery
+import com.neuexample.vehicle.Chery.{processCheryDataDJ1902, processCheryDataDJ2015}
+
+import scala.collection.mutable.HashSet
 /**
   *  清洗规则细节：
   *
@@ -24,9 +26,7 @@ object CleanStreaming extends Serializable {
 
   def vehicleClean(vehicleDStream: DStream[String]): DStream[String]={
 
-
-
-     vehicleDStream.map {
+    vehicleDStream.map {
       line => {
         val json: JSONObject = JSON.parseObject(line)
         (json.getString("vin"), json)
@@ -59,7 +59,7 @@ object CleanStreaming extends Serializable {
         }else if(vehicleFactory == 2){
           isDelete = isDeleteBasedOnCommon(old_obj, new_obj);
         }
-        println(isDelete)
+//        println(isDelete)
     }
 
     if(isDelete){
@@ -70,10 +70,18 @@ object CleanStreaming extends Serializable {
       if(vehicleFactory == 2){
         processJhData(json)
       }
-      //获取奇瑞项目为3的vin列表
-      if(vehicleFactory ==6 &&
-        CheryVin.creatInstance().contains(json.getString("vin"))){
-         processChery(json)
+      //处理奇瑞数据清洗问题去除项目3中温度数据超过28的数据
+      if(vehicleFactory ==6) {
+         //DJ1902数据处理
+        if(CheryUtil.creatInstanceDJ1902().contains(json.getString("vin"))){
+          processCheryDataDJ1902(json)
+        }
+        //DJ2015数据处理去除项目4中温度数据超过21的数据
+        if(CheryUtil.creatInstanceDJ2015().contains(json.getString("vin"))){
+          processCheryDataDJ2015(json)
+        }
+        //电流数据处理
+        json.put("current", json.getInteger("totalCurrent"))
       }
 
       cleanArrayValue(json)
