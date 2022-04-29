@@ -59,7 +59,7 @@ object CleanStreaming extends Serializable {
         }else if(vehicleFactory == 2){
           isDelete = isDeleteBasedOnCommon(old_obj, new_obj);
         }
-//        println(isDelete)
+        println(isDelete)
     }
 
     if(isDelete){
@@ -76,7 +76,7 @@ object CleanStreaming extends Serializable {
         if(CheryUtil.creatInstanceDJ1902().contains(json.getString("vin"))){
           processCheryDataDJ1902(json)
         }
-        //DJ2015数据处理去除项目4中温度数据超过21的数据
+//        DJ2015数据处理去除项目4中温度数据超过21的数据
         if(CheryUtil.creatInstanceDJ2015().contains(json.getString("vin"))){
           processCheryDataDJ2015(json)
         }

@@ -20,7 +20,7 @@ object CheryUtil {
     if (vinSetDJ1902 == null) {
       synchronized {
         if (vinSetDJ1902 == null) {
-          println("-----GetDJ1902List-----")
+          println("-----#GetDJ1902-----")
           vinSetDJ1902 = getDJ1902VinData
         }
       }
@@ -35,7 +35,7 @@ object CheryUtil {
     if (vinSetDJ2015 == null) {
       synchronized {
         if (vinSetDJ2015 == null) {
-          println("-----GetDJ2015List-----")
+          println("-----##GetDJ2015-----")
           vinSetDJ2015 = getDJ2015VinData
         }
       }
