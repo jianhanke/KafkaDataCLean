@@ -2,7 +2,8 @@ package com.neuexample.streaming
 
 import java.util.Properties
 
-import com.neuexample.utils.GetConfig
+import com.alibaba.fastjson.{JSON, JSONObject}
+import com.neuexample.utils.{CheryUtil, GetConfig}
 import org.apache.kafka.clients.producer.{KafkaProducer, ProducerRecord, RecordMetadata}
 import org.apache.kafka.common.serialization.StringDeserializer
 import org.apache.spark.broadcast.Broadcast
@@ -50,7 +51,6 @@ object KafkaStreaming extends Serializable {
     val bc_producer_props: Broadcast[Properties] = ssc.sparkContext.broadcast(props)
     val bc_topic: Broadcast[String] = ssc.sparkContext.broadcast(properties.getProperty("kafka.output.topic"))
 
-
     // Kafka配置参数
     val kafkaParams: Map[String, Object] = Map[String, Object](
       "bootstrap.servers" -> properties.getProperty("kafka.bootstrap.servers"),
@@ -71,9 +71,7 @@ object KafkaStreaming extends Serializable {
 
     val persistsParts: DStream[String] = initStream.map(_.value()).persist(StorageLevel.MEMORY_ONLY)
 
-
     val data: DStream[String] = vehicleClean(persistsParts).persist(StorageLevel.MEMORY_ONLY)
-
 
     data.foreachRDD(
      rdd => {

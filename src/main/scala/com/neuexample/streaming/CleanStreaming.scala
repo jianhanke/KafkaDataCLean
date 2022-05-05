@@ -1,6 +1,7 @@
 package com.neuexample.streaming
 
 import com.alibaba.fastjson.{JSON, JSONObject}
+import com.neuexample.utils.CheryUtil
 import org.apache.spark.streaming.{State, StateSpec}
 import org.apache.spark.streaming.dstream.{DStream, MapWithStateDStream}
 import com.neuexample.vehicle.Sgmw._
@@ -8,7 +9,9 @@ import com.neuexample.vehicle.Jh._
 import com.neuexample.vehicle.Geely._
 import com.neuexample.vehicle.CommonVehicle._
 import com.neuexample.utils.CommonFuncs._
+import com.neuexample.vehicle.Chery.{processCheryDataDJ1902, processCheryDataDJ2015}
 
+import scala.collection.mutable.HashSet
 /**
   *  清洗规则细节：
   *
@@ -23,7 +26,7 @@ object CleanStreaming extends Serializable {
 
   def vehicleClean(vehicleDStream: DStream[String]): DStream[String]={
 
-     vehicleDStream.map {
+    vehicleDStream.map {
       line => {
         val json: JSONObject = JSON.parseObject(line)
         (json.getString("vin"), json)
@@ -67,6 +70,20 @@ object CleanStreaming extends Serializable {
       if(vehicleFactory == 2){
         processJhData(json)
       }
+      //处理奇瑞数据清洗问题去除项目3中温度数据超过28的数据
+      if(vehicleFactory ==6) {
+         //DJ1902数据处理
+        if(CheryUtil.creatInstanceDJ1902().contains(json.getString("vin"))){
+          processCheryDataDJ1902(json)
+        }
+//        DJ2015数据处理去除项目4中温度数据超过21的数据
+        if(CheryUtil.creatInstanceDJ2015().contains(json.getString("vin"))){
+          processCheryDataDJ2015(json)
+        }
+        //电流数据处理
+        json.put("current", json.getInteger("totalCurrent"))
+      }
+
       cleanArrayValue(json)
 
       state.update(json);
@@ -83,19 +100,19 @@ object CleanStreaming extends Serializable {
     if(cellVoltageArray != null){
       json.put("batteryMaxVoltage", cellVoltageArray.max)
       json.put("batteryMinVoltage", cellVoltageArray.min)
-      json.put("totalVoltage", cellVoltageArray.sum);
-      json.put("voltage", cellVoltageArray.sum);
-      json.put("cellCount",cellVoltageArray.length);
+      json.put("totalVoltage", cellVoltageArray.sum)
+      json.put("voltage", cellVoltageArray.sum)
+      json.put("cellCount",cellVoltageArray.length)
 
       json.put("maxVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.max) + 1)
       json.put("minVoltagebatteryNum", cellVoltageArray.indexOf(cellVoltageArray.min) + 1)
     }
 
     if(probeTeptureArray !=null ){
-      json.put("maxTemperature", probeTeptureArray.max - 40);
-      json.put("minTemperature", probeTeptureArray.min - 40);
+      json.put("maxTemperature", probeTeptureArray.max - 40)
+      json.put("minTemperature", probeTeptureArray.min - 40)
       json.put("temperatureProbeCount",probeTeptureArray.length);
-      json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 );
+      json.put("temperature", probeTeptureArray.sum / probeTeptureArray.length - 40 )
 
       json.put("maxTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.max) + 1 )
       json.put("minTemperatureNum", probeTeptureArray.indexOf(probeTeptureArray.min) + 1 )
