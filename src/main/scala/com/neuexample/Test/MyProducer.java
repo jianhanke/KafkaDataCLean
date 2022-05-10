@@ -13,8 +13,9 @@ public class MyProducer {
     public static void main(String[] args)throws Exception {
 
         Properties props = new Properties();
-        props.put("bootstrap.servers","hadoop1:6667,hadoop2:6667,hadoop3:6667,");
-        props.put("acks","all");
+        props.put("bootstrap.servers","ambari01:6667,ambari02:6667,");
+//        props.put("bootstrap.servers","hadoop1:6667,hadoop2:6667,hadoop3:6667,");
+        props.put("acks","1");
         props.put("retries",1);
         props.put("batch.size",16384);  //  byte
         props.put("linger.ms",1000);   //
@@ -57,7 +58,7 @@ public class MyProducer {
 
         String test22="{\"maxTemperature\":59,\"driveMotorControllerTemperature\":false,\"dcTemperature\":false,\"controllerDcBusbarCurrent\":10000,\"batteryNumber\":1,\"temperatureDifferential\":false,\"year\":22,\"soc\":60,\"engineFailuresCount\":0,\"insulationResistance\":40797000,\"otherFailuresCodes\":[],\"maxVoltageSystemNum\":1,\"seconds\":56,\"driveMotorTemperature\":false,\"minVoltagebatteryNum\":17,\"deviceTypeOverVoltage\":false,\"engineFailuresCodes\":[],\"temperatureProbeCount\":5,\"vin\":\"C33A018E972ACFC88\",\"highPressureInterlock\":false,\"vehicleFactory\":\"1\",\"driveMotorCount\":1,\"day\":19,\"subsystemVoltageCount\":1,\"gears\":16,\"longitude\":4294967294,\"mileage\":26214,\"socHigh\":false,\"subsystemTemperatureCount\":1,\"level\":0,\"maxTemperatureNum\":2,\"minutes\":47,\"minTemperatureNum\":1,\"batteryCount\":30,\"insulation\":false,\"month\":1,\"deviceFailuresCount\":0,\"socJump\":false,\"subsystemTemperatureDataNum\":1,\"totalVoltage\":991,\"vehicleStatus\":3,\"status\":254,\"deviceFailuresCodes\":[],\"driveMotorFailuresCodes\":[],\"maxVoltagebatteryNum\":16,\"latitude\":4294967294,\"torque\":65534,\"deviceTypeDontMatch\":false,\"socLow\":false,\"alarmInfo\":0,\"cellVoltages\":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],\"chargeStatus\":3,\"speed\":65534,\"deviceTypeOverFilling\":false,\"controllerInputVoltage\":710,\"operationMode\":254,\"current\":10046,\"cellCount\":30,\"totalCurrent\":10046,\"minTemperature\":57,\"monomerBatteryUnderVoltage\":false,\"temperature\":254,\"deviceTypeUnderVoltage\":false,\"monomerBatteryOverVoltage\":false,\"batteryConsistencyPoor\":false,\"batteryMaxVoltage\":3315,\"batteryHighTemperature\":false,\"dcStatus\":false,\"hours\":22,\"riveMotorDataNum\":254,\"brakingSystem\":false,\"batteryMinVoltage\":3299,\"minTemperatureSystemNum\":1,\"driveMotorFailuresCount\":0,\"maxTemperatureSystemNum\":1,\"voltage\":991,\"subsystemVoltageDataNum\":1,\"minVoltageSystemNum\":1,\"otherFailuresCount\":0,\"probeTemperatures\":[60,60,60,60,60],\"time\":1642603679302}\n";
 
-        RecordMetadata meta = producer.send(new ProducerRecord<String, String>("vehicleqirui", test22)).get();
+        RecordMetadata meta = producer.send(new ProducerRecord<String, String>("Gotion-MobileChargingVehicle", test22)).get();
         System.out.println("offset:"+meta.offset()+","+meta.toString());
 
         producer.close();

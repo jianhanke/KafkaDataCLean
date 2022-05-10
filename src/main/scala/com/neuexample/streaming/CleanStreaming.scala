@@ -9,7 +9,7 @@ import com.neuexample.vehicle.Jh._
 import com.neuexample.vehicle.Geely._
 import com.neuexample.vehicle.CommonVehicle._
 import com.neuexample.utils.CommonFuncs._
-import com.neuexample.vehicle.Chery.{processCheryDataDJ1902, processCheryDataDJ2015}
+import com.neuexample.vehicle.Chery.{processCheryDataDJ1811A, processCheryDataDJ1902, processCheryDataDJ1903, processCheryDataDJ2015}
 
 import scala.collection.mutable.HashSet
 /**
@@ -79,6 +79,14 @@ object CleanStreaming extends Serializable {
 //        DJ2015数据处理去除项目4中温度数据超过21的数据
         if(CheryUtil.creatInstanceDJ2015().contains(json.getString("vin"))){
           processCheryDataDJ2015(json)
+        }
+        //DJ1811A 项目数据处理 单体超过100 温感超过34
+        if(CheryUtil.creatInstanceDJ1811A().contains(json.getString("vin"))){
+          processCheryDataDJ1811A(json)
+        }
+        //DJ1903 项目数据处理 单体超过100 温感超过34
+        if(CheryUtil.creatInstanceDJ1903().contains(json.getString("vin"))){
+          processCheryDataDJ1903(json)
         }
         //电流数据处理
         json.put("current", json.getInteger("totalCurrent"))
