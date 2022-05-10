@@ -9,23 +9,42 @@ import scala.collection.mutable.HashSet
 
 
 object CheryUtil {
+  @volatile private var vinSetDJ1811A: HashSet[String] = _
+  @volatile private var vinSetDJ1903: HashSet[String] = _
   @volatile private var vinSetDJ1902: HashSet[String] = _
   @volatile private var vinSetDJ2015: HashSet[String] = _
+
   val properties = GetConfig.getProperties("test.properties")
 
   /**
    *
+   * @return
    */
-  def creatInstanceDJ1902():HashSet[String] = {
-    if (vinSetDJ1902 == null) {
+  def creatInstanceDJ1811A():HashSet[String] = {
+    if (vinSetDJ1811A == null) {
       synchronized {
-        if (vinSetDJ1902 == null) {
-          println("-----#GetDJ1902-----")
-          vinSetDJ1902 = getDJ1902VinData
+        if (vinSetDJ1811A == null) {
+          println("-----#GetDJ1811A-----")
+          vinSetDJ1811A = getDJ1811AVinData
         }
       }
     }
-    vinSetDJ1902
+    vinSetDJ1811A
+  }
+
+  /**
+   *
+   */
+  def creatInstanceDJ1903():HashSet[String] = {
+    if (vinSetDJ1903 == null) {
+      synchronized {
+        if (vinSetDJ1903 == null) {
+          println("-----#GetDJ1903-----")
+          vinSetDJ1903 = getDJ1903VinData
+        }
+      }
+    }
+    vinSetDJ1903
   }
 
   /**
@@ -41,6 +60,62 @@ object CheryUtil {
       }
     }
     vinSetDJ2015
+  }
+
+  /**
+   *
+   * @return
+   */
+  def creatInstanceDJ1902():HashSet[String] = {
+    if (vinSetDJ1902 == null) {
+      synchronized {
+        if (vinSetDJ1902 == null) {
+          println("-----#GetDJ1902-----")
+          vinSetDJ1902 = getDJ1902VinData
+        }
+      }
+    }
+    vinSetDJ1902
+  }
+
+  /**
+   *
+   * @return
+   */
+  private def getDJ1811AVinData(): HashSet[String] = {
+    val conn = getMysqlConn(properties)
+    val vinSet:HashSet[String] =HashSet[String]()
+    val Select_Sql = "select vin from battery.GX_Vin where ProID = ?;"
+    val prepareStatement = conn.prepareStatement(Select_Sql)
+    prepareStatement.setInt(1, 1)
+    val result = prepareStatement.executeQuery()
+    while (result.next()) {
+      val vin = result.getString("vin")
+      vinSet.add(vin)
+    }
+    prepareStatement.close()
+    conn.close()
+    vinSet
+  }
+
+  /**
+   *
+   * @return
+   */
+  private def getDJ1903VinData(): HashSet[String] = {
+    val conn = getMysqlConn(properties)
+    val vinSet:HashSet[String] =HashSet[String]()
+    val Select_Sql = "select vin from battery.GX_Vin where ProID = ?;"
+    val prepareStatement = conn.prepareStatement(Select_Sql)
+    prepareStatement.setInt(1, 2)
+    val result = prepareStatement.executeQuery()
+    while (result.next()) {
+      val vin = result.getString("vin")
+      vinSet.add(vin)
+    }
+    prepareStatement.close()
+    conn.close()
+    vinSet
   }
 
   /**
@@ -78,6 +153,5 @@ object CheryUtil {
     conn.close()
     vinSet
   }
-
 
 }

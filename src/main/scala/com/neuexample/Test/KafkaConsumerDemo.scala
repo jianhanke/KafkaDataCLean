@@ -9,7 +9,7 @@ object KafkaConsumerDemo {
     val prop = new Properties
     prop.put("bootstrap.servers", "hadoop1:6667,hadoop2:6667,hadoop3:6667")
     // 指定消费者组
-    prop.put("group.id", "group01")
+    prop.put("group.id", "group-MobileChargingVehicle")
     // 指定消费位置: earliest/latest/none
     prop.put("auto.offset.reset", "earliest")
     // 指定消费的key的反序列化⽅式
