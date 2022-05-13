@@ -1,6 +1,6 @@
 package com.neuexample.vehicle
 
-import com.alibaba.fastjson.JSONObject
+import com.alibaba.fastjson.{JSON, JSONObject}
 import com.neuexample.utils.CommonFuncs._
 
 object Geely {
@@ -115,8 +115,43 @@ object Geely {
     var isChangeTemperature = false;
     var isChangeVoltage = false;
 
+    var cellVoltageArray_old: Array[Int] = stringToIntArray(old_obj.getString("cellVoltages"))
     var cellVoltageArray: Array[Int] = stringToIntArray(new_obj.getString("cellVoltages"))
     var probeTeptureArray: Array[Int] = stringToIntArray(new_obj.getString("probeTemperatures"))
+    val soc_old = old_obj.getInteger("soc")
+    val soc_new  = new_obj.getInteger("soc")
+    val maxTemp_old = old_obj.getInteger("maxTemperature")
+    val maxTemp_new = new_obj.getInteger("maxTemperature")
+    val minTemp_old = old_obj.getInteger("minTemperature")
+    val minTemp_new = new_obj.getInteger("minTemperature")
+    val maxVol_old = old_obj.getInteger("batteryMaxVoltage")
+    val maxVol_new = new_obj.getInteger("batteryMaxVoltage")
+    val minVol_old = old_obj.getInteger("batteryMinVoltage")
+    val minVol_new = new_obj.getInteger("batteryMinVoltage")
+
+    val time_old = mkctime(old_obj.getIntValue("year"),
+      old_obj.getIntValue("month"),
+      old_obj.getIntValue("day"),
+      old_obj.getIntValue("hours"),
+      old_obj.getIntValue("minutes"),
+      old_obj.getIntValue("seconds"))
+
+    val time_new = mkctime(new_obj.getIntValue("year"),
+      new_obj.getIntValue("month"),
+      new_obj.getIntValue("day"),
+      new_obj.getIntValue("hours"),
+      new_obj.getIntValue("minutes"),
+      new_obj.getIntValue("seconds"))
+
+    var totalVoltage_old =0
+    var totalVoltage_new =0
+    if(cellVoltageArray_old !=null && cellVoltageArray_old.nonEmpty){
+      totalVoltage_old = cellVoltageArray_old.sum
+    }
+    if(cellVoltageArray!=null && cellVoltageArray.nonEmpty){
+      totalVoltage_new = cellVoltageArray.sum
+    }
+
     val insulationResistance: Integer = new_obj.getInteger("insulationResistance")
 
     // 对 温度为空或，做清洗。如果此车辆有上条数据，则将上条数据 拿过来使用，否则过滤这条脏数据
@@ -157,7 +192,17 @@ object Geely {
     if(isChangeVoltage){
       new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
     }
+    //针对SOC跳变数据源清洗
+    if(math.abs(soc_old -soc_new)>=20 &&
+      math.abs(maxTemp_old-maxTemp_new)>=10 &&
+      math.abs(minTemp_old-minTemp_new)>=10 &&
+      math.abs(maxVol_old-maxVol_new)>=200 &&
+      math.abs(minVol_old-minVol_new)>=200 &&
+      math.abs(totalVoltage_old-totalVoltage_new)>=20000 &&
+      math.abs(time_old-time_new)>0 &&
+      math.abs(time_old-time_new)<=30){
 
+    }
     isReatain
   }
 

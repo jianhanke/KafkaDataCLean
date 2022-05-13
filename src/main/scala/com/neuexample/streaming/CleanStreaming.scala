@@ -39,7 +39,7 @@ object CleanStreaming extends Serializable {
   val func_state_c = ( key: String,values: Option[JSONObject],state: State[JSONObject] )=> {
 
     val old_obj: JSONObject = state.getOption().getOrElse(null)  // 获取同一车辆的上一条数据
-    val new_obj: JSONObject = values.get
+    var new_obj: JSONObject = values.get
 
     var isDelete = false;
     val vehicleFactory: Int = new_obj.getIntValue("vehicleFactory")
@@ -63,7 +63,7 @@ object CleanStreaming extends Serializable {
     }
 
     if(isDelete){
-      null
+      null    //删除当前数据
     }else{   // 保留下来的
       val json: JSONObject = JSON.parseObject(new_obj.toString)    // 必须转化成新的
 
