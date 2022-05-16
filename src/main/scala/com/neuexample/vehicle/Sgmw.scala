@@ -82,6 +82,11 @@ object Sgmw {
     if(isChangeVoltage){
       new_obj.put("cellVoltages",stringToList(old_obj.getString("cellVoltages")));
     }
+    //将绝缘阻值单位统一由欧改为千欧2022.05.16
+    if(insulationResistance !=null) {
+      new_obj.put("insulationResistance",insulationResistance.toInt /1000)
+    }
+
     isReatain;
   }
 
