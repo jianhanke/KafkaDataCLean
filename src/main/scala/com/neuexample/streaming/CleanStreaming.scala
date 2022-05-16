@@ -59,14 +59,17 @@ object CleanStreaming extends Serializable {
         }else if(vehicleFactory == 2){
           isDelete = isDeleteBasedOnCommon(old_obj, new_obj);
         }
-        println(isDelete)
+//        println(isDelete)
     }
 
     if(isDelete){
       null    //删除当前数据
     }else{   // 保留下来的
       val json: JSONObject = JSON.parseObject(new_obj.toString)    // 必须转化成新的
-
+      //处理吉利soc跳变问题
+//      if(vehicleFactory ==5){
+//        json = GeelySocJump(old_obj, new_obj)
+//      }
       if(vehicleFactory == 2){
         processJhData(json)
       }
@@ -94,7 +97,7 @@ object CleanStreaming extends Serializable {
 
       cleanArrayValue(json)
 
-      state.update(json);
+      state.update(json)
 
       json.toString
     }
