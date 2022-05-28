@@ -86,8 +86,13 @@ object Sgmw {
     if(insulationResistance !=null) {
       new_obj.put("insulationResistance",insulationResistance.toInt /1000)
     }
+    //将默认maxTemperatureSystemNum和maxVoltageSystemNum =1 2022.05.28
+    new_obj.put("maxVoltageSystemNum",1)//默认值1
+    new_obj.put("minVoltageSystemNum",1)//默认值1
+    new_obj.put("maxTemperatureSystemNum",1)//默认值1
+    new_obj.put("minTemperatureSystemNum",1)//默认值1
 
-    isReatain;
+    isReatain
   }
 
 }
