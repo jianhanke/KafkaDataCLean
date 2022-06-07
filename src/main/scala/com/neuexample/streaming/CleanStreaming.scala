@@ -10,6 +10,7 @@ import com.neuexample.vehicle.Geely._
 import com.neuexample.vehicle.CommonVehicle._
 import com.neuexample.utils.CommonFuncs._
 import com.neuexample.vehicle.Chery.{processCheryDataDJ1811A, processCheryDataDJ1902, processCheryDataDJ1903, processCheryDataDJ2015}
+import com.neuexample.vehicle.ruichi.processRuiChiData
 
 import scala.collection.mutable.HashSet
 /**
@@ -72,6 +73,9 @@ object CleanStreaming extends Serializable {
 //      }
       if(vehicleFactory == 2){
         processJhData(json)
+      }
+      if(vehicleFactory==4) {
+        processRuiChiData(json)
       }
       //处理奇瑞数据清洗问题去除项目3中温度数据超过28的数据
       if(vehicleFactory ==6) {
